@@ -7,10 +7,10 @@ services:
     envVars:
       - key: NODE_ENV
         value: production
-      - key: MONGODB_URI
-        sync: false
-      - key: JWT_SECRET
-        sync: false
       - key: PORT
         value: 5000
+      - key: MONGODB_URI
+        value: mongodb+srv://mittr:mittr321@cluster0.r4vsb.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0
+      - key: JWT_SECRET
+        value: mittr-secret-key-2024
     healthCheckPath: /api/health

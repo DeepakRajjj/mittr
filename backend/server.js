@@ -11,10 +11,13 @@ dotenv.config();
 
 const app = express();
 
-// Enable CORS for all requests
+// CORS configuration
 app.use(cors({
-  origin: true,
-  credentials: true
+  origin: ['https://mittr.netlify.app', 'http://localhost:3000'],
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization'],
+  credentials: true,
+  optionsSuccessStatus: 200
 }));
 
 app.use(express.json());
@@ -24,6 +27,7 @@ app.use(express.urlencoded({ extended: true }));
 app.use((req, res, next) => {
   console.log(`${req.method} ${req.path}`, {
     origin: req.headers.origin,
+    headers: req.headers,
     body: req.body,
     params: req.params,
     query: req.query
