@@ -1,0 +1,65 @@
+:root {
+    --primary-100: #892CDC;
+    --primary-200: #BC6FF1;
+    --primary-300: #fdf6fd;
+    --accent-100: #D9ACF5;
+    --accent-200: #fff4ff;
+    --text-100: #EEEEEE;
+    --text-200: #FDEBED;
+    --bg-100: #222831;
+    --bg-200: #393E46;
+    --bg-300: #454e59;
+}
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+body {
+    background-color: var(--bg-100);
+    color: var(--text-100);
+}
+
+button {
+    cursor: pointer;
+    border: none;
+    border-radius: 8px;
+    padding: 10px 20px;
+    font-size: 1rem;
+    transition: all 0.3s ease;
+}
+
+.primary-button {
+    background-color: var(--primary-100);
+    color: var(--text-100);
+}
+
+.primary-button:hover {
+    background-color: var(--primary-200);
+}
+
+.secondary-button {
+    background-color: var(--bg-200);
+    color: var(--text-100);
+}
+
+.secondary-button:hover {
+    background-color: var(--bg-300);
+}
+
+input {
+    padding: 10px;
+    border-radius: 8px;
+    border: 1px solid var(--bg-300);
+    background-color: var(--bg-200);
+    color: var(--text-100);
+    font-size: 1rem;
+}
+
+input:focus {
+    outline: none;
+    border-color: var(--primary-200);
+}
