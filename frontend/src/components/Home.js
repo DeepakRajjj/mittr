@@ -1,9 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import styled from 'styled-components';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 import { useAuth } from '../context/AuthContext';
 import { useTheme } from '../context/ThemeContext';
+import api from '../config/api';
 import toast from 'react-hot-toast';
 import Confetti from 'react-confetti';
 import { Tooltip } from 'react-tooltip';
@@ -248,28 +249,85 @@ const Home = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [error, setError] = useState('');
 
-  const fetchData = async () => {
+  const fetchUsers = async () => {
     try {
       setLoading(true);
-      setError('');
-
-      const [usersRes, friendsRes, receivedRes, sentRes] = await Promise.all([
-        endpoints.users.getAll(),
-        endpoints.friends.getAll(),
-        endpoints.friends.requests.getReceived(),
-        endpoints.friends.requests.getSent(),
+      const [usersResponse, friendsResponse, sentResponse, receivedResponse] = await Promise.all([
+        api.get('/users'),
+        api.get('/friends'),
+        api.get('/friends/requests/sent'),
+        api.get('/friends/requests/received')
       ]);
 
-      setUsers(usersRes.data || []);
-      setFriends(friendsRes.data || []);
-      setReceivedRequests(receivedRes.data || []);
-      setSentRequests(sentRes.data || []);
+      const currentFriends = friendsResponse.data;
+      const sentRequests = sentResponse.data;
+      const receivedRequests = receivedResponse.data;
+
+      // Filter out current user and process user statuses
+      const filteredUsers = usersResponse.data
+        .filter(u => u._id !== user._id)
+        .map(u => ({
+          ...u,
+          isFriend: currentFriends.some(f => f._id === u._id),
+          requestSent: sentRequests.some(r => r._id === u._id),
+          requestReceived: receivedRequests.some(r => r._id === u._id)
+        }));
+
+      setUsers(filteredUsers);
+      setFriends(currentFriends);
+      setSentRequests(sentRequests);
+      setReceivedRequests(receivedRequests);
     } catch (error) {
-      console.error('Error fetching data:', error);
-      setError(error.response?.data?.message || 'Error fetching data');
-      toast.error('Failed to load data');
+      console.error('Error fetching users:', error);
+      toast.error('Failed to fetch users');
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleSendRequest = async (userId) => {
+    try {
+      await api.post(`/friends/request/${userId}`);
+      toast.success('Friend request sent!');
+      fetchUsers(); // Refresh the user list
+    } catch (error) {
+      console.error('Error sending friend request:', error);
+      toast.error('Failed to send friend request');
+    }
+  };
+
+  const handleAcceptRequest = async (userId) => {
+    try {
+      await api.post(`/friends/accept/${userId}`);
+      setShowConfetti(true);
+      toast.success('Friend request accepted!');
+      fetchUsers(); // Refresh the user list
+      setTimeout(() => setShowConfetti(false), 3000);
+    } catch (error) {
+      console.error('Error accepting friend request:', error);
+      toast.error('Failed to accept friend request');
+    }
+  };
+
+  const handleDeclineRequest = async (userId) => {
+    try {
+      await api.post(`/friends/decline/${userId}`);
+      toast.success('Friend request declined');
+      fetchUsers(); // Refresh the user list
+    } catch (error) {
+      console.error('Error declining friend request:', error);
+      toast.error('Failed to decline friend request');
+    }
+  };
+
+  const handleRemoveFriend = async (userId) => {
+    try {
+      await api.post(`/friends/remove/${userId}`);
+      toast.success('Friend removed');
+      fetchUsers(); // Refresh the user list
+    } catch (error) {
+      console.error('Error removing friend:', error);
+      toast.error('Failed to remove friend');
     }
   };
 
@@ -278,54 +336,8 @@ const Home = () => {
       navigate('/login');
       return;
     }
-    fetchData();
+    fetchUsers();
   }, [user, navigate]);
-
-  const handleFriendRequest = async (userId) => {
-    try {
-      await endpoints.friends.requests.send(userId);
-      toast.success('Friend request sent!');
-      await fetchData();
-    } catch (error) {
-      console.error('Error sending friend request:', error);
-      toast.error(error.response?.data?.message || 'Failed to send friend request');
-    }
-  };
-
-  const handleAcceptRequest = async (userId) => {
-    try {
-      await endpoints.friends.requests.accept(userId);
-      setShowConfetti(true);
-      setTimeout(() => setShowConfetti(false), 3000);
-      toast.success('Friend request accepted!');
-      await fetchData();
-    } catch (error) {
-      console.error('Error accepting friend request:', error);
-      toast.error(error.response?.data?.message || 'Failed to accept friend request');
-    }
-  };
-
-  const handleDeclineRequest = async (userId) => {
-    try {
-      await endpoints.friends.requests.decline(userId);
-      toast.success('Friend request declined!');
-      await fetchData();
-    } catch (error) {
-      console.error('Error declining friend request:', error);
-      toast.error(error.response?.data?.message || 'Failed to decline friend request');
-    }
-  };
-
-  const handleRemoveFriend = async (userId) => {
-    try {
-      await endpoints.friends.remove(userId);
-      toast.success('Friend removed');
-      await fetchData();
-    } catch (error) {
-      console.error('Error removing friend:', error);
-      toast.error(error.response?.data?.message || 'Failed to remove friend');
-    }
-  };
 
   const getButtonForUser = (user) => {
     if (!user?._id) return null;
@@ -366,38 +378,15 @@ const Home = () => {
     }
     
     return (
-      <AddButton onClick={() => handleFriendRequest(user._id)}>
+      <AddButton onClick={() => handleSendRequest(user._id)}>
         <PersonAddIcon sx={{ fontSize: 16 }} /> Add Friend
       </AddButton>
     );
   };
 
-  // Filter valid users and exclude current user and friends
-  const validUsers = users?.filter(user => 
-    user?._id && 
-    user?.username && 
-    user._id !== user?.id &&
-    !friends?.some(friend => friend?._id === user._id)
-  ) || [];
-
-  const filteredUsers = validUsers.filter(user => 
+  const filteredUsers = users.filter(user => 
     user.username.toLowerCase().includes(searchQuery.toLowerCase())
   );
-
-  const validFriends = friends?.filter(friend => friend?._id && friend?.username) || [];
-  const validReceivedRequests = receivedRequests?.filter(request => 
-    request?.from?._id && request?.from?.username
-  ) || [];
-
-  // Create sets for quick lookups
-  const friendIds = new Set(validFriends.map(friend => friend._id));
-  const receivedRequestIds = new Set(validReceivedRequests.map(request => request.from._id));
-  const sentRequestIds = new Set(sentRequests?.map(request => request?.to?._id).filter(Boolean));
-
-  const handleLogout = () => {
-    logout();
-    navigate('/login');
-  };
 
   return (
     <Container theme={theme}>
@@ -417,7 +406,10 @@ const Home = () => {
             {theme.isDarkMode ? <LightModeIcon /> : <DarkModeIcon />}
           </ThemeToggle>
           <LogoutButton 
-            onClick={handleLogout}
+            onClick={() => {
+              logout();
+              navigate('/login');
+            }}
             data-tooltip-id="logout-tooltip"
             data-tooltip-content="Logout from your account"
           >
@@ -453,14 +445,14 @@ const Home = () => {
           <UserCardSkeleton count={6} />
         ) : (
           <>
-            {validReceivedRequests.length > 0 && (
+            {receivedRequests.length > 0 && (
               <BentoBox theme={theme}>
                 <SectionTitle theme={theme}>
                   <PersonAddIcon sx={{ fontSize: 16 }} />
                   Friend Requests
                 </SectionTitle>
                 <AnimatePresence>
-                  {validReceivedRequests.map(request => (
+                  {receivedRequests.map(request => (
                     <UserCard
                       key={`request-${request.from._id}`}
                       as={motion.div}
@@ -500,7 +492,7 @@ const Home = () => {
               {filteredUsers.length > 0 ? (
                 <AnimatePresence>
                   {filteredUsers
-                    .filter(user => !friendIds.has(user._id) && !receivedRequestIds.has(user._id))
+                    .filter(user => !friends?.some(friend => friend?._id === user._id) && !receivedRequests?.some(request => request?.from?._id === user._id))
                     .map(user => (
                       <UserCard
                         key={`user-${user._id}`}
@@ -525,9 +517,9 @@ const Home = () => {
                 <PeopleIcon sx={{ fontSize: 16 }} />
                 Friends
               </SectionTitle>
-              {validFriends.length > 0 ? (
+              {friends.length > 0 ? (
                 <AnimatePresence>
-                  {validFriends.map(friend => (
+                  {friends.map(friend => (
                     <UserCard
                       key={`friend-${friend._id}`}
                       as={motion.div}
