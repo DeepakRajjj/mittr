@@ -9,11 +9,16 @@ const friendRoutes = require('./routes/friends');
 dotenv.config();
 const app = express();
 
+// CORS configuration
+const corsOptions = {
+    origin: ['http://localhost:3000', 'https://mittr.netlify.app'],
+    credentials: true,
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization']
+};
+
 // Middleware
-app.use(cors({
-    origin: 'http://localhost:3000',
-    credentials: true
-}));
+app.use(cors(corsOptions));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
@@ -39,6 +44,11 @@ mongoose.connect('mongodb+srv://mittr:mittr321@cluster0.r4vsb.mongodb.net/?retry
 app.use('/api/auth', authRoutes);
 app.use('/api/users', userRoutes);
 app.use('/api/friends', friendRoutes);
+
+// Health check endpoint
+app.get('/api/health', (req, res) => {
+  res.status(200).json({ status: 'healthy' });
+});
 
 // Error handling middleware
 app.use((err, req, res, next) => {
