@@ -1,24 +1,22 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import styled from 'styled-components';
+import { motion } from 'framer-motion';
 import { useAuth } from '../context/AuthContext';
 import { useTheme } from '../context/ThemeContext';
-import { useNavigate } from 'react-router-dom';
-import axios from 'axios';
-import { motion, AnimatePresence } from 'framer-motion';
-import { Tooltip } from 'react-tooltip';
 import toast from 'react-hot-toast';
 import Confetti from 'react-confetti';
-import UserCardSkeleton from './UserCardSkeleton';
+import { Tooltip } from 'react-tooltip';
 import PersonAddIcon from '@mui/icons-material/PersonAdd';
-import PeopleIcon from '@mui/icons-material/People';
-import SearchIcon from '@mui/icons-material/Search';
+import PersonRemoveIcon from '@mui/icons-material/PersonRemove';
 import CheckIcon from '@mui/icons-material/Check';
 import CloseIcon from '@mui/icons-material/Close';
-import LogoutIcon from '@mui/icons-material/Logout';
+import SearchIcon from '@mui/icons-material/Search';
+import PeopleIcon from '@mui/icons-material/People';
 import FavoriteIcon from '@mui/icons-material/Favorite';
 import DarkModeIcon from '@mui/icons-material/DarkMode';
 import LightModeIcon from '@mui/icons-material/LightMode';
-import { endpoints } from '../config/api';
+import UserCardSkeleton from './UserCardSkeleton';
 
 const friendshipQuotes = [
   "A friend is one soul dwelling in two bodies.",
@@ -423,7 +421,7 @@ const Home = () => {
             data-tooltip-id="logout-tooltip"
             data-tooltip-content="Logout from your account"
           >
-            <LogoutIcon sx={{ fontSize: 16 }} />
+            <CloseIcon sx={{ fontSize: 16 }} />
             Logout
           </LogoutButton>
         </UserInfo>
