@@ -13,12 +13,15 @@ const app = express();
 
 // CORS configuration
 app.use(cors({
-  origin: ['https://mittr.netlify.app', 'http://localhost:3000'],
+  origin: 'https://mittr.netlify.app',
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization'],
   credentials: true,
   optionsSuccessStatus: 200
 }));
+
+// Preflight requests
+app.options('*', cors());
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
