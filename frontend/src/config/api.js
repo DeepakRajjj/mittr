@@ -1,6 +1,6 @@
 import axios from 'axios';
 
-const BASE_URL = process.env.REACT_APP_API_URL || 'https://mittr-backend.onrender.com/api';
+const BASE_URL = process.env.REACT_APP_API_URL || 'https://api.mittr.net/api';
 
 console.log('API Base URL:', BASE_URL);
 
