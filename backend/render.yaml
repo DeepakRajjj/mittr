@@ -13,4 +13,6 @@ services:
         value: mongodb+srv://mittr:mittr321@cluster0.r4vsb.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0
       - key: JWT_SECRET
         value: mittr-secret-key-2024
+      - key: CORS_ORIGIN
+        value: https://mittr.netlify.app
     healthCheckPath: /api/health

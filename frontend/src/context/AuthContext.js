@@ -19,9 +19,15 @@ export const AuthProvider = ({ children }) => {
 
   const fetchUserData = async () => {
     try {
-      const response = await api.get('/auth/me');
+      const response = await api.get('/auth/me', {
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${localStorage.getItem('token')}`
+        }
+      });
       setUser(response.data);
     } catch (error) {
+      console.error('Error fetching user data:', error);
       localStorage.removeItem('token');
       delete api.defaults.headers.common['Authorization'];
     } finally {
@@ -31,33 +37,42 @@ export const AuthProvider = ({ children }) => {
 
   const login = async (email, password) => {
     try {
-      const response = await api.post('/auth/login', {
-        email,
-        password
-      });
+      const response = await api.post('/auth/login', 
+        { email, password },
+        {
+          headers: {
+            'Content-Type': 'application/json'
+          }
+        }
+      );
       const { token, user: userData } = response.data;
       localStorage.setItem('token', token);
       api.defaults.headers.common['Authorization'] = `Bearer ${token}`;
       setUser(userData);
       return response.data;
     } catch (error) {
+      console.error('Login error:', error);
       throw error.response?.data || { message: 'An error occurred during login' };
     }
   };
 
   const register = async (username, email, password) => {
     try {
-      const response = await api.post('/auth/register', {
-        username,
-        email,
-        password
-      });
+      const response = await api.post('/auth/register', 
+        { username, email, password },
+        {
+          headers: {
+            'Content-Type': 'application/json'
+          }
+        }
+      );
       const { token, user: userData } = response.data;
       localStorage.setItem('token', token);
       api.defaults.headers.common['Authorization'] = `Bearer ${token}`;
       setUser(userData);
       return response.data;
     } catch (error) {
+      console.error('Registration error:', error);
       throw error.response?.data || { message: 'An error occurred during registration' };
     }
   };

@@ -8,7 +8,7 @@ console.log('API Base URL:', BASE_URL);
 const api = axios.create({
   baseURL: BASE_URL,
   timeout: 10000,
-  withCredentials: true,
+  withCredentials: false, // Changed to false for CORS
   headers: {
     'Content-Type': 'application/json',
   }
@@ -22,6 +22,8 @@ api.interceptors.request.use(
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
     }
+    // Ensure CORS headers are present
+    config.headers['Access-Control-Allow-Origin'] = 'https://mittr.netlify.app';
     return config;
   },
   (error) => {
@@ -37,11 +39,17 @@ api.interceptors.response.use(
     return response;
   },
   (error) => {
-    console.error('Response error:', error.response?.status, error.response?.data);
+    console.error('Response error:', {
+      status: error.response?.status,
+      data: error.response?.data,
+      headers: error.response?.headers
+    });
+    
     if (error.response?.status === 401) {
       localStorage.removeItem('token');
       window.location.href = '/login';
     }
+    
     return Promise.reject(error);
   }
 );
