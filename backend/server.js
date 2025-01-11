@@ -39,7 +39,8 @@ app.use((req, res, next) => {
 });
 
 // MongoDB connection
-mongoose.connect(process.env.MONGODB_URI || 'mongodb+srv://mittr:mittr321@cluster0.r4vsb.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0', {
+const mongodbUri = process.env.MONGODB_URI;
+mongoose.connect(mongodbUri, {
   useNewUrlParser: true,
   useUnifiedTopology: true,
 })
