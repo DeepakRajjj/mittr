@@ -11,25 +11,14 @@ dotenv.config();
 
 const app = express();
 
-// Define allowed origins
-const allowedOrigins = ['https://mittr.netlify.app', 'https://mittr.onrender.com'];
-
-// CORS configuration with detailed origin handling
+// CORS configuration
 app.use(cors({
-  origin: function(origin, callback) {
-    if (!origin || allowedOrigins.includes(origin)) {
-      callback(null, true);
-    } else {
-      callback(new Error('Not allowed by CORS'));
-    }
-  },
-  credentials: true,
+  origin: ['https://mittr.netlify.app'], // Allow only Netlify domain
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization']
+  allowedHeaders: ['Content-Type', 'Authorization'],
+  credentials: true,
+  optionsSuccessStatus: 200
 }));
-
-// Enable pre-flight requests for all routes
-app.options('*', cors());
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
